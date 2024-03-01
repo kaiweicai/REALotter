@@ -39,7 +39,7 @@ describe("Main contract init and test", () => {
 		};
 	}
 
-	describe.only("deploy main test", () => {
+	describe("deploy main test", () => {
 
 		it("buy ticker by REA", async () => {
 			const {
