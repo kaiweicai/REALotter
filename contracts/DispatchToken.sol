@@ -117,4 +117,7 @@ contract DispatchToken is OwnableUpgradeable {
     function setManager(address _manager, bool _flag) public onlyOwner {
         isManager[_manager] = _flag;
     }
+
+
+
 }

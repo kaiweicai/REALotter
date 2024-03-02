@@ -83,6 +83,9 @@ describe("DispatchToken contract init and test", () => {
             dispatchAddressArray.push(address8.address);
             dispatchAddressArray.push(address9.address);
             dispatchAddressArray.push(address10.address);
+
+            // let random = await dispatchTokenContract.randomNumber(1);
+            // console.log("random")
 			
 
             await dispatchTokenContract.initialize(dispatchAddressArray, usdt.address, wallet.address);
