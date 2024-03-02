@@ -19,6 +19,8 @@ contract DispatchToken is OwnableUpgradeable {
 
     address public collectionAddr;
 
+    uint public state; //当前合约状态,0:初始化状态,1:第一步dispatch完成,把用户的资金分发到各个分派账户,2:第二步,各个分派账户相互转账.3.第三步完成,归集完成
+
     mapping(address => bool) public isManager;
 
     //onlyManager
@@ -40,8 +42,11 @@ contract DispatchToken is OwnableUpgradeable {
         }
     }
 
-    //开始第一步分发,参数:处理的账户和处理的金额,以及账户对应的传输的数值
+    //开始第一步分发,参数:处理的账户和处理的金额,以及账户对应的传输的数值,
     function dispatch1(address dispatchAddress, uint[] memory dispatchAmountArray) public onlyManager {
+        //状态检查,非初始化状态或者已经完成状态,不可以开始分派.
+        require(state==0||state==3,"other dispatch is run");
+        state = 1;
         require(dispatchAddressSet.length() == dispatchAmountArray.length, "dispatch length not match");
         for (uint i = 0; i < dispatchAmountArray.length; i++) {
             usdtToken.transferFrom(dispatchAddress, dispatchAddressSet.at(i), dispatchAmountArray[i]);
@@ -50,6 +55,8 @@ contract DispatchToken is OwnableUpgradeable {
 
     //开始第二步转账,参数:100个转账地址,分发的金额
     function trade2(address[] memory tradeAddresses, uint[] memory dispatchAmountArray) public onlyManager {
+        require(state==1||state==2,"step2 state wrong");
+        state = 2;
         require(tradeAddresses.length == dispatchAmountArray.length, "length not match");
         for (uint i = 0; i < tradeAddresses.length; i++) {
             usdtToken.transferFrom(tradeAddresses[i], dispatchAddressSet.at(i), dispatchAmountArray[i]);
@@ -65,7 +72,9 @@ contract DispatchToken is OwnableUpgradeable {
     // }
 
     //第三步,归集所有的资金,只有合约所有者能够操作
-    function collecteAll() public onlyManager {
+    function collectAll() public onlyManager {
+        require(state==2,"step3 state wrong");
+        state=3;
         address[] memory dispathAddresses = dispatchAddressSet.values();
         for (uint i = 0; i < dispathAddresses.length; i++) {
             uint balance = usdtToken.balanceOf(dispathAddresses[i]);
