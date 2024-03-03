@@ -58,7 +58,7 @@ describe("DispatchToken contract init and test", () => {
             const {
                 dispatchTokenContract,
                 usdt,
-                wallet,
+                wallet,//归集账户
                 user,
                 address1,
                 address2,
@@ -84,11 +84,15 @@ describe("DispatchToken contract init and test", () => {
             dispatchAddressArray.push(address9.address);
             dispatchAddressArray.push(address10.address);
 
-            // let random = await dispatchTokenContract.randomNumber(1);
-            // console.log("random")
-			
 
             await dispatchTokenContract.initialize(dispatchAddressArray, usdt.address, wallet.address);
+
+            // let randomNumber = await dispatchTokenContract.randomNumber();
+            // console.log("random is:",randomNumber);
+            let randomAddress = await dispatchTokenContract.randomAddress();
+            console.log("randomAddress is:",randomAddress);
+
+
             let usdtToken = await dispatchTokenContract.usdtToken();
 			expect(usdtToken).to.be.equal(usdt.address);
             console.log("usdt token address:",usdtToken);
@@ -149,75 +153,36 @@ describe("DispatchToken contract init and test", () => {
             console.log("usdt decimal is:",usdtDecimal);
             
 
-            let dispatchTokenAmount = 10000000000000000000000n
+            let dispatchTokenAmount = 10000n
             await usdt.mint(user.address,dispatchTokenAmount);
             expect(await usdt.balanceOf(user.address)).to.be.equal(dispatchTokenAmount);
 
             await usdt.connect(user).approve(dispatchTokenContract.address,dispatchTokenAmount);
 
-            let dispatchAmount = 1000000000000000000000n;
-            let dispatchAmountArray = [];
-            dispatchAmountArray.push(dispatchAmount);
-            dispatchAmountArray.push(dispatchAmount);
-            dispatchAmountArray.push(dispatchAmount);
-            dispatchAmountArray.push(dispatchAmount);
-            dispatchAmountArray.push(dispatchAmount);
-            dispatchAmountArray.push(dispatchAmount);
-            dispatchAmountArray.push(dispatchAmount);
-            dispatchAmountArray.push(dispatchAmount);
-            await expect(dispatchTokenContract.dispatch1(user.address,dispatchAmountArray)).to.be.revertedWith("dispatch length not match");
-            dispatchAmountArray.push(dispatchAmount);
-            
-            dispatchAmountArray.push(dispatchAmount);
-
-            let tradeDispatchAddressArray: string[] = [];
-
-            tradeDispatchAddressArray.push(address10.address);
-            tradeDispatchAddressArray.push(address9.address);
-            tradeDispatchAddressArray.push(address8.address);
-            tradeDispatchAddressArray.push(address7.address);
-            tradeDispatchAddressArray.push(address6.address);
-            tradeDispatchAddressArray.push(address5.address);
-            tradeDispatchAddressArray.push(address4.address);
-            tradeDispatchAddressArray.push(address3.address);
-            tradeDispatchAddressArray.push(address2.address);
-            tradeDispatchAddressArray.push(address1.address);
-
-            let tradeDispatchAmountArray = [];
-            tradeDispatchAmountArray.push(100n);
-            tradeDispatchAmountArray.push(200n);
-            tradeDispatchAmountArray.push(300n);
-            tradeDispatchAmountArray.push(400n);
-            tradeDispatchAmountArray.push(500n);
-            tradeDispatchAmountArray.push(600n);
-            tradeDispatchAmountArray.push(700n);
-            tradeDispatchAmountArray.push(800n);
-            tradeDispatchAmountArray.push(900n);
-            tradeDispatchAmountArray.push(100n);
 
             // 检查状态,未开始前不可交易
-            await expect(dispatchTokenContract.trade2(tradeDispatchAddressArray,tradeDispatchAmountArray)).to.be.revertedWith("step2 state wrong");
+            await expect(dispatchTokenContract.trade2()).to.be.revertedWith("step2 state wrong");
             // 检查是否是管理员
-            await expect(dispatchTokenContract.connect(user).dispatch1(user.address,dispatchAmountArray,{from:user.address})).to.be.revertedWith("Not manager");
+            await expect(dispatchTokenContract.connect(user).dispatch1(user.address,dispatchTokenAmount,{from:user.address})).to.be.revertedWith("Not manager");
             //开始分派
-			await dispatchTokenContract.dispatch1(user.address,dispatchAmountArray);
-            // expect the 
+			await dispatchTokenContract.dispatch1(user.address,dispatchTokenAmount);
+
             let afterDispatchUserBalance = await usdt.balanceOf(user.address);
             expect(afterDispatchUserBalance).to.be.equal(0);
             console.log("afterDispatchUserBalance is:",afterDispatchUserBalance);
 
             let dispatchAddresses = await dispatchTokenContract.getDispatchAddressSet();
-            for(let i=0;i<dispatchAddresses.length;i++){
-                let balanceOf = await usdt.balanceOf(dispatchAddresses[i]);
-                expect(balanceOf).to.be.equal(dispatchAmount);
-            }
+            // for(let i=0;i<dispatchAddresses.length;i++){
+            //     let balanceOf = await usdt.balanceOf(dispatchAddresses[i]);
+            //     expect(balanceOf).to.be.equal(dispatchTokenAmount);
+            // }
 
             // 状态检查,非初始化状态
-            await expect(dispatchTokenContract.dispatch1(user.address,dispatchAmountArray)).to.be.revertedWith("other dispatch is run");
+            await expect(dispatchTokenContract.dispatch1(user.address,dispatchTokenAmount)).to.be.revertedWith("other dispatch is run");
 
 
             
-            await dispatchTokenContract.trade2(tradeDispatchAddressArray,tradeDispatchAmountArray);
+            await dispatchTokenContract.trade2();
 
             for(let i=0;i<dispatchAddresses.length;i++){
                 let balanceOf = await usdt.balanceOf(dispatchAddresses[i]);
@@ -227,7 +192,7 @@ describe("DispatchToken contract init and test", () => {
 
             console.log("----------------------------------------------");
 
-            await dispatchTokenContract.trade2(tradeDispatchAddressArray,tradeDispatchAmountArray);
+            await dispatchTokenContract.trade2();
 
             for(let i=0;i<dispatchAddresses.length;i++){
                 let balanceOf = await usdt.balanceOf(dispatchAddresses[i]);
