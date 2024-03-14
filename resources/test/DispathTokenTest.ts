@@ -164,7 +164,7 @@ describe("DispatchToken contract init and test", () => {
             await expect(dispatchTokenContract.trade2()).to.be.revertedWith("step2 state wrong");
             // 检查是否是管理员
             await expect(dispatchTokenContract.connect(user).dispatch1(user.address,dispatchTokenAmount,{from:user.address})).to.be.revertedWith("Not manager");
-            //开始分派
+            //第一步 开始分派
 			await dispatchTokenContract.dispatch1(user.address,dispatchTokenAmount);
 
             let afterDispatchUserBalance = await usdt.balanceOf(user.address);
@@ -177,16 +177,22 @@ describe("DispatchToken contract init and test", () => {
             //     expect(balanceOf).to.be.equal(dispatchTokenAmount);
             // }
 
+            console.log("----------------------------------------------");
             // 状态检查,非初始化状态
             await expect(dispatchTokenContract.dispatch1(user.address,dispatchTokenAmount)).to.be.revertedWith("other dispatch is run");
-
+            for(let i=0;i<dispatchAddresses.length;i++){
+                let balanceOf = await usdt.balanceOf(dispatchAddresses[i]);
+                console.log("balanceOf is:",dispatchAddresses[i],balanceOf.toNumber());
+                // expect(balanceOf).to.be.equal(dispatchAmount);
+            }
 
             
             await dispatchTokenContract.trade2();
+            console.log("----------------------------------------------");
 
             for(let i=0;i<dispatchAddresses.length;i++){
                 let balanceOf = await usdt.balanceOf(dispatchAddresses[i]);
-                console.log("balanceOf is:",balanceOf);
+                console.log("balanceOf is:",dispatchAddresses[i],balanceOf.toNumber());
                 // expect(balanceOf).to.be.equal(dispatchAmount);
             }
 
@@ -196,7 +202,7 @@ describe("DispatchToken contract init and test", () => {
 
             for(let i=0;i<dispatchAddresses.length;i++){
                 let balanceOf = await usdt.balanceOf(dispatchAddresses[i]);
-                console.log("balanceOf is:",balanceOf);
+                console.log("balanceOf is:",dispatchAddresses[i],balanceOf.toNumber());
                 // expect(balanceOf).to.be.equal(dispatchAmount);
             }
 
@@ -205,6 +211,7 @@ describe("DispatchToken contract init and test", () => {
             expect(beforeCollectBalance).to.be.equal(0);
             await dispatchTokenContract.collectAll();
             let afterCollectBalance = await usdt.balanceOf(wallet.address);
+            console.log("afterCollectBalance is:",afterCollectBalance);
             expect(afterCollectBalance).to.be.equal(dispatchTokenAmount);
 
         });
